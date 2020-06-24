@@ -18,8 +18,6 @@ import org.openapitools.codegen.ClientOptInput;
 import org.openapitools.codegen.DefaultGenerator;
 import org.openapitools.codegen.config.CodegenConfigurator;
 
-import br.com.c8tech.oas3.codegen.vertx.VertxOas3ModelGenerator;
-
 /***
  * This test allows you to easily launch your code generation software under a
  * debugger. Then run this test under debug mode. You will be able to step
@@ -38,12 +36,14 @@ public class VertxDataObjectInterfacesGeneratorTest {
   public void launchCodeGenerator() {
     // to understand how the 'openapi-generator-cli' module is using 'CodegenConfigurator', have a look at the 'Generate' class:
     // https://github.com/OpenAPITools/openapi-generator/blob/master/modules/openapi-generator-cli/src/main/java/org/openapitools/codegen/cmd/Generate.java 
-    final CodegenConfigurator configurator = new CodegenConfigurator()
-      .setGeneratorName(VertxOas3ModelGenerator.GENERATOR_NAME) // use this codegen library
-      .setModelPackage("mypack").setInputSpec("src/test/resources/3.x/petstore.yaml") // sample OpenAPI file
-      .setOutputDir("target/gen/my-codegen") // output directory
-      .addImportMapping("ParentModel",
-                        "br.com.c8tech.oas3.codegen.vertx.AbstractModel");
+    final CodegenConfigurator configurator =
+        new CodegenConfigurator().setGeneratorName(VertxOas3ModelGenerator.GENERATOR_NAME) // use this codegen library
+          .setModelPackage("mypack").setInputSpec("src/test/resources/3.x/petstore.yaml") // sample OpenAPI file
+          .setOutputDir("target/gen/my-codegen");
+    configurator.addTypeMapping("ParentModel",
+                                "AbstractModel");
+    configurator.addImportMapping("AbstractModel",
+                                  "br.com.c8tech.oas3.codegen.vertx.AbstractModel");
     final ClientOptInput clientOptInput = configurator.toClientOptInput();
     DefaultGenerator generator = new DefaultGenerator();
     generator.opts(clientOptInput).generate();

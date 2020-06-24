@@ -722,7 +722,7 @@ components:
             - sold
       xml:
         name: Pet
-        
+    
     ApiResponse:
       title: An uploaded response
       description: Describes the result of uploading an image resource

@@ -39,10 +39,15 @@ import io.swagger.v3.oas.models.media.Schema;
 public class VertxOas3ModelGenerator extends AbstractJavaCodegen
     implements CodegenConfig {
 
-  private static final String DEFAULT_PACKAGE_BASE  = "br.com.c8tech.project";
-  private static final String DEFAULT_PACKAGE_MODEL = DEFAULT_PACKAGE_BASE + ".model";
+  private static final String DEFAULT_PACKAGE_MODEL =
+      Constants.DEFAULT_PACKAGE_BASE + ".model";
   public static final String  GENERATOR_NAME        = "vertx-dataobjects";
-  private static final String TEMPLATE_FOLDER       = "vertx-dataobjects";
+  /**
+   * The class Logger
+   */
+  private static final String PARENT_MODEL          = "ParentModel";
+
+  private static final String TEMPLATE_FOLDER = "vertx-dataobjects";
 
   protected String resourceFolder = "src/main/resources";
 
@@ -63,7 +68,9 @@ public class VertxOas3ModelGenerator extends AbstractJavaCodegen
     dateLibrary = "java8";
 
     // set the output folder here
-    outputFolder = "generated-code" + File.separator + GENERATOR_NAME;
+    outputFolder = "generated-code" + File.separator + "java";
+
+    setSortModelPropertiesByRequiredFlag(true);
 
     /**
      * Template Location. This is the location which templates will be read
@@ -83,40 +90,34 @@ public class VertxOas3ModelGenerator extends AbstractJavaCodegen
                       "io.vertx.core.json.JsonObject");
     importMapping.put("DataObject",
                       "io.vertx.codegen.annotations.DataObject");
-    importMapping.put("ParentModel",
-                      "br.com.c8tech.oas3.codegen.vertx.AbstractModel");
+    typeMapping.put(PARENT_MODEL,
+                    "br.com.c8tech.oas3.codegen.vertx.AbstractModel");
 
     // cliOptions default redefinition need to be updated
     updateOption(CodegenConstants.MODEL_PACKAGE,
                  modelPackage);
-    updateOption(CodegenConstants.TEMPLATE_DIR,
-                 templateDir);
+    updateOption(CodegenConstants.INVOKER_PACKAGE,
+                 this.getInvokerPackage());
+    updateOption(CodegenConstants.API_PACKAGE,
+                 apiPackage);
 
     additionalProperties.put("lambdaRemoveLineBreak",
                              (Mustache.Lambda) (fragment, writer) -> writer
                                .write(fragment.execute().replaceAll("\\r|\\n",
                                                                     "")));
-
     additionalProperties.put("lambdaTrimWhitespace",
                              new TrimWhitespaceLambda());
 
     additionalProperties.put("lambdaSplitString",
                              new SplitStringLambda());
-
-    languageSpecificPrimitives.add("ParentModel");
   }
 
+  @SuppressWarnings("rawtypes")
   @Override
-  public CodegenModel fromModel(String name, @SuppressWarnings("rawtypes") Schema model) {
+  public CodegenModel fromModel(String name, Schema model) {
 
     CodegenModel codegenModel = super.fromModel(name,
                                                 model);
-
-    if (codegenModel.getParent() == null) {
-
-      codegenModel.setParent("ParentModel");
-    }
-
     if (codegenModel.imports.contains("ApiModel")) {
       // Remove io.swagger.annotations.ApiModel import
       codegenModel.imports.remove("ApiModel");
@@ -129,8 +130,14 @@ public class VertxOas3ModelGenerator extends AbstractJavaCodegen
     if (!BooleanUtils.toBoolean(codegenModel.isEnum)) {
       codegenModel.imports.add("DataObject");
       codegenModel.imports.add("JsonObject");
-      codegenModel.imports.add("ParentModel");
       codegenModel.imports.add("Objects");
+
+      if (codegenModel.getParent() == null) {
+        String newType = typeMapping().getOrDefault(PARENT_MODEL,
+                                                    PARENT_MODEL);
+        codegenModel.imports.add(newType);
+        codegenModel.setParent(newType);
+      }
     }
     return codegenModel;
   }
@@ -165,13 +172,12 @@ public class VertxOas3ModelGenerator extends AbstractJavaCodegen
    */
   @Override
   public CodegenType getTag() {
-    return CodegenType.SCHEMA;
+    return CodegenType.SERVER;
   }
 
   @Override
   public void preprocessOpenAPI(OpenAPI openAPI) {
     super.preprocessOpenAPI(openAPI);
-
     // add server port from the swagger file, 8080 by default
     URL url = URLPathUtils.getServerURL(openAPI,
                                         serverVariableOverrides());
@@ -184,7 +190,6 @@ public class VertxOas3ModelGenerator extends AbstractJavaCodegen
       artifactVersion = openAPI.getInfo().getVersion();
     }
 
-    this.additionalProperties.remove("gson");
   }
 
   @Override

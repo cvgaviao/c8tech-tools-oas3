@@ -1,4 +1,3 @@
-  @DataObject(generateConverter = true, inheritConverter = true)
   public enum {{{datatypeWithEnum}}} {
     {{#allowableValues}}{{#enumVars}}{{{name}}}({{{value}}}){{^-last}},
     {{/-last}}{{#-last}};{{/-last}}{{/enumVars}}{{/allowableValues}}
