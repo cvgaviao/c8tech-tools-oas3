@@ -33,13 +33,14 @@ public class VertxDataObjectInterfacesGeneratorTest {
   // use this test to launch you code generator in the debugger.
   // this allows you to easily set break points in MyclientcodegenGenerator.
   @Test
-  public void launchCodeGenerator() {
+  public void launchDataObjectsCodeGenerator() {
     // to understand how the 'openapi-generator-cli' module is using 'CodegenConfigurator', have a look at the 'Generate' class:
     // https://github.com/OpenAPITools/openapi-generator/blob/master/modules/openapi-generator-cli/src/main/java/org/openapitools/codegen/cmd/Generate.java 
     final CodegenConfigurator configurator =
         new CodegenConfigurator().setGeneratorName(VertxOas3ModelGenerator.GENERATOR_NAME) // use this codegen library
-          .setModelPackage("mypack").setInputSpec("src/test/resources/3.x/petstore.yaml") // sample OpenAPI file
-          .setOutputDir("target/gen/my-codegen");
+          .setModelPackage("io.dataobjetcs")
+          .setInputSpec("src/test/resources/3.x/petstore.yaml") // sample OpenAPI file
+          .setOutputDir("target/gen/my-dataobjects");
     configurator.addTypeMapping("ParentModel",
                                 "AbstractModel");
     configurator.addImportMapping("AbstractModel",
@@ -50,4 +51,5 @@ public class VertxDataObjectInterfacesGeneratorTest {
 
     assertThat(configurator).isNotNull();
   }
+
 }

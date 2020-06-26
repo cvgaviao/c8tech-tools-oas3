@@ -12,7 +12,6 @@
 package br.com.c8tech.oas3.codegen.vertx;
 
 import java.io.File;
-import java.net.URL;
 import java.util.EnumSet;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -29,25 +28,16 @@ import org.openapitools.codegen.meta.features.SecurityFeature;
 import org.openapitools.codegen.meta.features.WireFormatFeature;
 import org.openapitools.codegen.templating.mustache.SplitStringLambda;
 import org.openapitools.codegen.templating.mustache.TrimWhitespaceLambda;
-import org.openapitools.codegen.utils.URLPathUtils;
 
 import com.samskivert.mustache.Mustache;
 
-import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
 
 public class VertxOas3ModelGenerator extends AbstractJavaCodegen
     implements CodegenConfig {
 
-  private static final String DEFAULT_PACKAGE_MODEL =
-      Constants.DEFAULT_PACKAGE_BASE + ".model";
-  public static final String  GENERATOR_NAME        = "vertx-dataobjects";
-  /**
-   * The class Logger
-   */
-  private static final String PARENT_MODEL          = "ParentModel";
-
-  private static final String TEMPLATE_FOLDER = "vertx-dataobjects";
+  public static final String  GENERATOR_NAME = "vertx-oas3-dataobjects";
+  private static final String PARENT_MODEL   = "ParentModel";
 
   protected String resourceFolder = "src/main/resources";
 
@@ -77,10 +67,10 @@ public class VertxOas3ModelGenerator extends AbstractJavaCodegen
      * from. The generator will use the resource stream to attempt to read the
      * templates.
      */
-    embeddedTemplateDir = templateDir = TEMPLATE_FOLDER;
+    embeddedTemplateDir = templateDir = Constants.TEMPLATE_FOLDER;
 
     // set package names
-    modelPackage = DEFAULT_PACKAGE_MODEL;
+    modelPackage = Constants.DEFAULT_PACKAGE_MODEL;
     apiTemplateFiles.clear();
     apiTestTemplateFiles.clear();
     apiDocTemplateFiles.clear();
@@ -150,7 +140,7 @@ public class VertxOas3ModelGenerator extends AbstractJavaCodegen
    */
   @Override
   public String getHelp() {
-    return "Generates a java-Vertx Server Application project using Vert.x Web Contract API.";
+    return "Generates a java vert.x data-objects classes based on the OAS3 specification schema models.";
   }
 
   /**
@@ -176,23 +166,6 @@ public class VertxOas3ModelGenerator extends AbstractJavaCodegen
   }
 
   @Override
-  public void preprocessOpenAPI(OpenAPI openAPI) {
-    super.preprocessOpenAPI(openAPI);
-    // add server port from the swagger file, 8080 by default
-    URL url = URLPathUtils.getServerURL(openAPI,
-                                        serverVariableOverrides());
-    this.additionalProperties.put("serverPort",
-                                  URLPathUtils.getPort(url,
-                                                       8080));
-
-    // retrieve api version from swagger file, 1.0.0-SNAPSHOT by default
-    if (openAPI.getInfo() != null && openAPI.getInfo().getVersion() != null) {
-      artifactVersion = openAPI.getInfo().getVersion();
-    }
-
-  }
-
-  @Override
   public void processOpts() {
     super.processOpts();
 
@@ -201,10 +174,6 @@ public class VertxOas3ModelGenerator extends AbstractJavaCodegen
      * are available in models, apis, and supporting files
      */
 
-    additionalProperties.put("java8",
-                             "true");
-    additionalProperties.put(SUPPORT_ASYNC,
-                             "true");
     apiTestTemplateFiles.clear();
 
     modelDocTemplateFiles.clear();
