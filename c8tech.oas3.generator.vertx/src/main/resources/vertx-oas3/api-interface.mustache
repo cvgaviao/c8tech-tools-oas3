@@ -1,0 +1,25 @@
+package {{package}};
+
+import java.util.function.Consumer;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.openapi.RouterFactory;
+
+public interface {{classname}} {
+
+  public static {{classname}} instance(){
+    return new {{classname}}Impl();
+  }   
+  public static {{classname}} mock(){
+    return new {{classname}}Mock();  
+  }   
+  
+  public Consumer<RouterFactory> mountOperationHandler();
+    
+  {{#operations}}
+  {{#operation}}
+  void handle{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}}(RoutingContext pRoutingContext);
+  void handleFailed{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}}(RoutingContext pRoutingContext);
+  
+  {{/operation}}
+  {{/operations}}
+}

@@ -1,0 +1,44 @@
+package {{package}};
+
+{{#imports}}import {{import}};
+{{/imports}}
+import java.util.function.Consumer;
+import io.vertx.ext.web.openapi.RouterFactory;
+import java.util.List;
+
+public class {{classname}}Mock implements {{classname}}{
+
+    public {{classname}}Mock(){
+      super();
+    }
+    
+    @Override
+    public Consumer<RouterFactory> mountOperationHandler() {
+      return routerFactory -> { 
+        {{#operations}}
+        {{#operation}}
+        routerFactory.operation("{{operationId}}")
+          .handler({{classname}}Mock.this::handle{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}})
+          .failureHandler({{classname}}Mock.this::handleFailed{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}});
+        {{/operation}}
+        {{/operations}}
+      };  
+    }
+
+    {{#operations}}
+    {{#operation}}
+    @Override
+    public void handle{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}}(RoutingContext pRoutingContext){
+    {{#allParams}}
+      {{{dataType}}} {{paramName}};
+    {{/allParams}}
+    }
+    @Override
+    public void handleFailed{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}}(RoutingContext pRoutingContext){
+    {{#allParams}}
+      {{{dataType}}} {{paramName}};
+    {{/allParams}}
+    }
+    {{/operation}}
+    {{/operations}}
+}
