@@ -817,6 +817,7 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
   public void processOpts() {
     super.processOpts();
 
+    apiTemplateFiles.clear();
     apiTestTemplateFiles.clear();
     modelDocTemplateFiles.clear();
     modelTestTemplateFiles.clear();
