@@ -217,9 +217,19 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
         if (!Boolean.TRUE.equals(cp.isReadOnly)) {
           pCodegenModel.hasOnlyReadOnly = false;
         }
+        if (cp.isMapContainer) {
 
-        if (cp.isContainer) {
-          // TODO revise the logic to include map
+          addImport(pCodegenModel,
+                    typeMapping.get("map"));
+          CodegenProperty innerCp = cp;
+          while (innerCp != null) {
+            addImport(pCodegenModel,
+                      innerCp.complexType);
+            innerCp = innerCp.items;
+          }
+        }
+        if (cp.isListContainer) {
+
           addImport(pCodegenModel,
                     typeMapping.get("array"));
           CodegenProperty innerCp = cp;
