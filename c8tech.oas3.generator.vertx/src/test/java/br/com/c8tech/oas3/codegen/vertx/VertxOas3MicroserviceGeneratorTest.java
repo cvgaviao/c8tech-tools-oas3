@@ -28,19 +28,19 @@ import org.openapitools.codegen.config.CodegenConfigurator;
  * To launch this test in Eclipse: right-click | Debug As | JUnit Test
  *
  */
-public class VertxOas3MicroserviceGeneratorTest {
+class VertxOas3MicroserviceGeneratorTest {
 
   // use this test to launch you code generator in the debugger.
   // this allows you to easily set break points in MyclientcodegenGenerator.
   @Test
-  public void launchDataObjectsCodeGenerator() {
+  void testVertxMicroserviceCodeGenerator() {
     // to understand how the 'openapi-generator-cli' module is using 'CodegenConfigurator', have a look at the 'Generate' class:
     // https://github.com/OpenAPITools/openapi-generator/blob/master/modules/openapi-generator-cli/src/main/java/org/openapitools/codegen/cmd/Generate.java 
     final CodegenConfigurator configurator = new CodegenConfigurator()
       .setGeneratorName(VertxOas3MicroserviceProjectGenerator.GENERATOR_NAME) // use this codegen library
       .setModelPackage("io.dataobjetcs")
       .setInputSpec("src/test/resources/3.x/petstore.yaml") // sample OpenAPI file
-      .setOutputDir("target/gen/my-microservice");
+      .setOutputDir("target/gen/" + VertxOas3MicroserviceProjectGenerator.GENERATOR_NAME);
     configurator.addTypeMapping("ParentModel",
                                 "AbstractModel");
     configurator.addImportMapping("AbstractModel",

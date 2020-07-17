@@ -1,10 +1,11 @@
-package {{package}};
+package {{package}}.impl;
 
-{{#imports}}import {{import}};
-{{/imports}}
+import {{package}}.{{classname}};
 import java.util.function.Consumer;
 import io.vertx.ext.web.openapi.RouterFactory;
 import java.util.List;
+{{#imports}}import {{import}};
+{{/imports}}
 
 public class {{classname}}Mock implements {{classname}}{
 

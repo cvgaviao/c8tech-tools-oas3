@@ -1,9 +1,13 @@
 @DataObject(generateConverter = true{{#parent}}, inheritConverter = true{{/parent}})
-public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}} {{#serializableModel}}implements Serializable{{/serializableModel}} {
+public class {{classname}} {{#parent}}extends {{{parent}}} {{/parent}}{{#interfaces}}{{#-first}}implements {{{.}}}{{/-first}}{{^-first}}, {{{.}}}{{/-first}}{{#-last}} {{/-last}}{{/interfaces}}{
+
+{{#serializableModel}}
+  private static final long serialVersionUID = 1L;
+{{/serializableModel}}
   {{#vars}}
   {{#isEnum}}
-  {{^isContainer}}{{>enumClass}}{{/isContainer}}
-  {{#isContainer}}{{#mostInnerItems}}{{>enumClass}}{{/mostInnerItems}}{{/isContainer}}
+  {{^isContainer}}{{>modelInnerEnum}}{{/isContainer}}
+  {{#isContainer}}{{#mostInnerItems}}{{>modelInnerEnum}}{{/mostInnerItems}}{{/isContainer}}
   {{/isEnum}}
   private {{{datatypeWithEnum}}} {{name}}{{#defaultValue}} = {{{.}}}{{/defaultValue}};
   {{/vars}}
@@ -20,11 +24,14 @@ public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}} {{#seriali
     return {{name}};
   }
   
+  {{^isReadOnly}}
   public void {{setter}}({{{datatypeWithEnum}}} {{name}}) {
     this.{{name}} = {{name}};
   }
+  {{/isReadOnly}}
   {{/vars}}
-
+  {{>additional_properties}}
+  
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -70,4 +77,15 @@ public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}} {{#seriali
     {{classname}}Converter.toJson(this, json);
     return json;
   }
+{{#discriminator}}
+static {
+  // Initialize and register the discriminator mappings.
+  Map<String, Class<?>> mappings = new HashMap<String, Class<?>>();
+  {{#mappedModels}}
+  mappings.put("{{mappingName}}", {{modelName}}.class);
+  {{/mappedModels}}
+  mappings.put("{{name}}", {{classname}}.class);
+  JSON.registerDiscriminator({{classname}}.class, "{{propertyBaseName}}", mappings);
+}
+{{/discriminator}}  
 }

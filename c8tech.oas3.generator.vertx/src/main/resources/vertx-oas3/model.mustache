@@ -1,14 +1,17 @@
+{{>licenseInfo}}
 package {{package}};
 
-{{#imports}}import {{import}};
+{{#imports}}
+import {{import}};
 {{/imports}}
-{{#serializableModel}}import java.io.Serializable;{{/serializableModel}} {{#models}}{{#model}}
+{{#lambdaRemoveLineBreak}}{{#serializableModel}}import java.io.Serializable;{{/serializableModel}}{{/lambdaRemoveLineBreak}}
+{{#models}}
+{{#model}}
 {{#description}}
-/**
+ /**
  * {{description}}
- **/{{/description}}
-{{^description}}{{/description}}
-{{#isEnum}}{{>enumClass}}{{/isEnum}}
-{{^isEnum}}{{>pojo}}{{/isEnum}}
+ **/
+{{/description}}
+{{#isEnum}}{{>modelEnum}}{{/isEnum}}{{^isEnum}}{{#oneOf}}{{#-first}}{{>oneof_interface}}{{/-first}}{{/oneOf}}{{^oneOf}}{{#anyOf}}{{#-first}}{{>anyof_model}}{{/-first}}{{/anyOf}}{{^anyOf}}{{>pojo}}{{/anyOf}}{{/oneOf}}{{/isEnum}}
 {{/model}}
 {{/models}}

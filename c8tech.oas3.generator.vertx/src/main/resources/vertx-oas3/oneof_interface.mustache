@@ -1,0 +1,7 @@
+{{#vars}}{{#-first}}@DataObject{{/-first}}{{/vars}}
+public interface {{classname}} {{#parent}}{{#-first}}extends {{{.}}}{{/-first}}{{^-first}}, {{{.}}}{{/-first}}{{/parent}} {
+
+  {{#vars}}
+    {{{datatypeWithEnum}}} {{getter}}();
+  {{/vars}}
+}

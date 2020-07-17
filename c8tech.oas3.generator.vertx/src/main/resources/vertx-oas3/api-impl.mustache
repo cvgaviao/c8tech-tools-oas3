@@ -1,13 +1,14 @@
-package {{package}};
+package {{package}}.impl;
 
-{{#imports}}import {{import}};
-{{/imports}}
+import {{package}}.{{classname}};
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.vertx.ext.web.openapi.RouterFactory;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.ValidationHandler;
+{{#imports}}import {{import}};
+{{/imports}}
 
 {{#vendorExtensions.x-codegen-parent-import}}import {{{vendorExtensions.x-codegen-parent-import}}}{{/vendorExtensions.x-codegen-parent-import}}
 {{vendorExtensions.x-codegen-http-method-upper-case}}
@@ -38,56 +39,60 @@ public class {{classname}}Impl {{#vendorExtensions.x-codegen-parent-class}}exten
     @Override
     public void handle{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}}(RoutingContext pRoutingContext){
       LOG.info("{{operationId}}({})", "{{httpMethod}}");
+      {{#vendorExtensions.x-codegen-isget}}
       {{#hasParams}}
       RequestParameters params = pRoutingContext.get(ValidationHandler.REQUEST_CONTEXT_KEY);
-      {{#hasCookiesParams}}{{#cookieParams}}@Nullable RequestParameter p{{paramName}} = params.cookieParameter("{{paramName}}");
+      {{#hasCookiesParams}}{{#cookieParams}} RequestParameter p{{paramName}} = params.cookieParameter("{{paramName}}");
       if ({{paramName}} != null){
         
       }{{/cookieParams}}{{/hasCookiesParams}}
-      {{#hasHeaderParams}}{{#headerParams}}@Nullable RequestParameter {{paramName}} = params.headerParameter("{{paramName}}");
+      {{#hasHeaderParams}}{{#headerParams}} RequestParameter {{paramName}} = params.headerParameter("{{paramName}}");
       if ({{paramName}} != null){
         
       }{{/headerParams}}{{/hasHeaderParams}}
       
-      {{#hasQueryParams}}{{#queryParams}}@Nullable RequestParameter {{paramName}} = params.queryParameter("{{paramName}}");
+      {{#hasQueryParams}}{{#queryParams}} RequestParameter {{paramName}} = params.queryParameter("{{paramName}}");
       if ({{paramName}} != null){
         
       }{{/queryParams}}{{/hasQueryParams}}
-      {{#hasFormParams}}{{#formParams}}@Nullable RequestParameter {{paramName}} = params.pathParameter("{{paramName}}");
+      {{#hasFormParams}}{{#formParams}} RequestParameter {{paramName}} = params.pathParameter("{{paramName}}");
       if ({{paramName}} != null){
       
       }{{/formParams}}{{/hasFormParams}}
       {{#hasBodyParam}}{{#bodyParams}}RequestParameter {{{paramName}}} = params.body();{{/bodyParams}}{{/hasBodyParam}}
-      {{/hasParams}}
       
+      JsonObject operation = pRoutingContext.get("operationModel");
+      pRoutingContext.response().setStatusCode(200).setStatusMessage("OK")
+        .end(operation.getString("operationId"));
+      
+      {{/hasParams}}
+      {{/vendorExtensions.x-codegen-isget}}
     }
 
     {{#isDeprecated}}@Deprecated{{/isDeprecated}}
     @Override
     public void handleFailed{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}}(RoutingContext pRoutingContext){
       LOG.info("{{operationId}}({})", "{{httpMethod}}");
-      {{#hasParams}}
+      {{#vendorExtensions.x-codegen-isget}}{{#lambdaRemoveLineBreak}}{{#hasParams}}
       RequestParameters params = pRoutingContext.get(ValidationHandler.REQUEST_CONTEXT_KEY);
-      {{#hasCookiesParams}}{{#cookieParams}}@Nullable RequestParameter p{{paramName}} = params.cookieParameter("{{paramName}}");
+      {{#hasCookiesParams}}{{#cookieParams}} RequestParameter p{{paramName}} = params.cookieParameter("{{paramName}}");
       if ({{paramName}} != null){
         
       }{{/cookieParams}}{{/hasCookiesParams}}
-      {{#hasHeaderParams}}{{#headerParams}}@Nullable RequestParameter {{paramName}} = params.headerParameter("{{paramName}}");
+      {{#hasHeaderParams}}{{#headerParams}} RequestParameter {{paramName}} = params.headerParameter("{{paramName}}");
       if ({{paramName}} != null){
         
       }{{/headerParams}}{{/hasHeaderParams}}
-      
-      {{#hasQueryParams}}{{#queryParams}}@Nullable RequestParameter {{paramName}} = params.queryParameter("{{paramName}}");
+      {{#hasQueryParams}}{{#queryParams}} RequestParameter {{paramName}} = params.queryParameter("{{paramName}}");
       if ({{paramName}} != null){
         
       }{{/queryParams}}{{/hasQueryParams}}
-      {{#hasFormParams}}{{#formParams}}@Nullable RequestParameter {{paramName}} = params.pathParameter("{{paramName}}");
+      {{#hasFormParams}}{{#formParams}} RequestParameter {{paramName}} = params.pathParameter("{{paramName}}");
       if ({{paramName}} != null){
       
       }{{/formParams}}{{/hasFormParams}}
       {{#hasBodyParam}}{{#bodyParams}}RequestParameter {{{paramName}}} = params.body();{{/bodyParams}}{{/hasBodyParam}}
-      {{/hasParams}}
-      
+      {{/hasParams}}{{/lambdaRemoveLineBreak}}{{/vendorExtensions.x-codegen-isget}}
     }
     {{/operation}}
     {{/operations}}
