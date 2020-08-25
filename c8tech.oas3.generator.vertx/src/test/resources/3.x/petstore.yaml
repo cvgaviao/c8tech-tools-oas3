@@ -54,7 +54,7 @@ components:
         '
       in: query
       name: filter
-      required: true
+      required: false
       content:
         application/json:
           schema:
@@ -200,22 +200,21 @@ components:
       allOf:
         - $ref: "#/components/schemas/Criteria"
       oneOf:
-#        - $ref: "#/components/schemas/AbstractLogicalExpression"
         - $ref: "#/components/schemas/LogicalExpressionAnd"
         - $ref: "#/components/schemas/LogicalExpressionOr"
         - $ref: "#/components/schemas/LogicalExpressionNot"
       type: object
       discriminator:
         propertyName: operator
-      required:
-        - operator
-      properties:
-        operator:
-          type: string
-        criterias:
-          type: array
-          items:
-            $ref: "#/components/schemas/Criteria"
+#      required:
+#        - operator
+#      properties:
+#        operator:
+#          type: string
+#        criterias:
+#          type: array
+#          items:
+#            $ref: "#/components/schemas/Criteria"
 
     AbstractLogicalExpression:  
       type: object

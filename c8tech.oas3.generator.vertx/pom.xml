@@ -1,6 +1,6 @@
 
 <!-- ============================================================================ -->
-<!--  Copyright ©  2020,    Cristiano V. Gavião			                  -->
+<!--  Copyright ©  2020,    Cristiano V. Gavião                     -->
 <!--                                                                              -->
 <!--  All rights reserved.                                                        -->
 <!--  This program and the accompanying materials are made available under        -->
@@ -9,14 +9,15 @@
 <!--                                                                              -->
 <!-- ============================================================================ -->
 
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>br.com.c8tech.releng</groupId>
-    <artifactId>maven-parent-java</artifactId>
-    <version>8.1-SNAPSHOT</version>
+    <groupId>br.com.c8tech.java</groupId>
+    <artifactId>c8tech-maven-parent</artifactId>
+    <version>1-SNAPSHOT</version>
     <relativePath></relativePath>
   </parent>
 

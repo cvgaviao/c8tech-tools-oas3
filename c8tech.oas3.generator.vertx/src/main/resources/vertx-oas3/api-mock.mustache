@@ -1,44 +1,43 @@
 package {{package}}.impl;
 
 import {{package}}.{{classname}};
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.function.Consumer;
 import io.vertx.ext.web.openapi.RouterFactory;
 import java.util.List;
 {{#imports}}import {{import}};
 {{/imports}}
 
-public class {{classname}}Mock implements {{classname}}{
+public class {{classname}}Mock {{#vendorExtensions.x-codegen-parent-class}}extends {{{vendorExtensions.x-codegen-parent-class}}}{{/vendorExtensions.x-codegen-parent-class}} implements {{classname}}{
+
+    public static final Logger LOG = LoggerFactory.getLogger({{classname}}Mock.class);
 
     public {{classname}}Mock(){
       super();
     }
-    
+
     @Override
     public Consumer<RouterFactory> mountOperationHandler() {
-      return routerFactory -> { 
+      LOG.debug("Mounting mock {{operationId}}({})", "{{httpMethod}}");
+      return routerFactory -> {
         {{#operations}}
         {{#operation}}
         routerFactory.operation("{{operationId}}")
           .handler({{classname}}Mock.this::handle{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}})
           .failureHandler({{classname}}Mock.this::handleFailed{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}});
-        {{/operation}}
-        {{/operations}}
-      };  
+        {{/operation}}{{/operations}}
+      };
     }
 
-    {{#operations}}
-    {{#operation}}
+    {{#operations}}{{#operation}}
     @Override
     public void handle{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}}(RoutingContext pRoutingContext){
-    {{#allParams}}
-      {{{dataType}}} {{paramName}};
-    {{/allParams}}
+      LOG.info("{{operationId}}({})", "{{httpMethod}}");
     }
     @Override
     public void handleFailed{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}}(RoutingContext pRoutingContext){
-    {{#allParams}}
-      {{{dataType}}} {{paramName}};
-    {{/allParams}}
+      LOG.error("{{operationId}}({})", "{{httpMethod}}");
     }
     {{/operation}}
     {{/operations}}

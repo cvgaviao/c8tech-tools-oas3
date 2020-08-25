@@ -1,5 +1,5 @@
 @DataObject(generateConverter = true{{#parent}}, inheritConverter = true{{/parent}})
-public class {{classname}} {{#parent}}extends {{{parent}}} {{/parent}}{{#interfaces}}{{#-first}}implements {{{.}}}{{/-first}}{{^-first}}, {{{.}}}{{/-first}}{{#-last}} {{/-last}}{{/interfaces}}{
+public {{#vendorExtensions.x-codegen-isAbstract}}abstract{{/vendorExtensions.x-codegen-isAbstract}} class {{classname}} {{#parent}}extends {{{parent}}} {{/parent}}{{#interfaces}}{{#-first}}implements {{{.}}}{{/-first}}{{^-first}}, {{{.}}}{{/-first}}{{#-last}} {{/-last}}{{/interfaces}}{
 
 {{#serializableModel}}
   private static final long serialVersionUID = 1L;
@@ -31,7 +31,9 @@ public class {{classname}} {{#parent}}extends {{{parent}}} {{/parent}}{{#interfa
   {{/isReadOnly}}
   {{/vars}}
   {{>additional_properties}}
-  
+
+{{#vars}}
+{{#-first}}  
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -51,15 +53,24 @@ public class {{classname}} {{#parent}}extends {{{parent}}} {{/parent}}{{#interfa
     return Objects.hash({{#vars}}{{name}}{{#hasMore}}, {{/hasMore}}{{/vars}});
   }
 
+{{/-first}}
+{{/vars}}
+
   /**
    * Convert the given object to string with each line indented by 2 spaces
    * (except the first line).
    */
-  private String toIndentedString(java.lang.Object o) {
+  protected String toIndentedString(java.lang.Object o) {
     if (o == null) {
       return "null";
     }
     return o.toString().replace("\n", "\n  ");
+  }
+
+  public JsonObject toJson() {
+    JsonObject json = new JsonObject();
+    {{classname}}Converter.toJson(this, json);
+    return json;
   }
 
   @Override
@@ -72,20 +83,4 @@ public class {{classname}} {{#parent}}extends {{{parent}}} {{/parent}}{{#interfa
     return sb.toString();
   }
 
-  public JsonObject toJson() {
-    JsonObject json = new JsonObject();
-    {{classname}}Converter.toJson(this, json);
-    return json;
-  }
-{{#discriminator}}
-static {
-  // Initialize and register the discriminator mappings.
-  Map<String, Class<?>> mappings = new HashMap<String, Class<?>>();
-  {{#mappedModels}}
-  mappings.put("{{mappingName}}", {{modelName}}.class);
-  {{/mappedModels}}
-  mappings.put("{{name}}", {{classname}}.class);
-  JSON.registerDiscriminator({{classname}}.class, "{{propertyBaseName}}", mappings);
-}
-{{/discriminator}}  
 }

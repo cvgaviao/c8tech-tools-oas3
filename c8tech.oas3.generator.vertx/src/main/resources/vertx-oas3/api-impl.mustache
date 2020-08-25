@@ -15,87 +15,83 @@ import io.vertx.ext.web.validation.ValidationHandler;
 public class {{classname}}Impl {{#vendorExtensions.x-codegen-parent-class}}extends {{{vendorExtensions.x-codegen-parent-class}}}{{/vendorExtensions.x-codegen-parent-class}} implements {{classname}}{
 
     public static final Logger LOG = LoggerFactory.getLogger({{classname}}Impl.class);
-    
+
     public {{classname}}Impl(){
       super();
     }
-    
+
     @Override
     public Consumer<RouterFactory> mountOperationHandler() {
-      return routerFactory -> { 
+      LOG.debug("Mounting {{operationId}}({})", "{{httpMethod}}");
+      return routerFactory -> {
         {{#operations}}
         {{#operation}}
         routerFactory.operation("{{operationId}}")
           .handler({{classname}}Impl.this::handle{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}})
           .failureHandler({{classname}}Impl.this::handleFailed{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}});
-        {{/operation}}
-        {{/operations}}
-      };  
+        {{/operation}}{{/operations}}
+      };
     }
 
-    {{#operations}}
-    {{#operation}}
+    {{#operations}}{{#operation}}
     {{#isDeprecated}}@Deprecated{{/isDeprecated}}
     @Override
     public void handle{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}}(RoutingContext pRoutingContext){
       LOG.info("{{operationId}}({})", "{{httpMethod}}");
-      {{#vendorExtensions.x-codegen-isget}}
-      {{#hasParams}}
+      {{#vendorExtensions.x-codegen-isget}}{{#hasParams}}
       RequestParameters params = pRoutingContext.get(ValidationHandler.REQUEST_CONTEXT_KEY);
       {{#hasCookiesParams}}{{#cookieParams}} RequestParameter p{{paramName}} = params.cookieParameter("{{paramName}}");
       if ({{paramName}} != null){
-        
+
       }{{/cookieParams}}{{/hasCookiesParams}}
       {{#hasHeaderParams}}{{#headerParams}} RequestParameter {{paramName}} = params.headerParameter("{{paramName}}");
       if ({{paramName}} != null){
-        
+
       }{{/headerParams}}{{/hasHeaderParams}}
-      
+
       {{#hasQueryParams}}{{#queryParams}} RequestParameter {{paramName}} = params.queryParameter("{{paramName}}");
       if ({{paramName}} != null){
-        
+
       }{{/queryParams}}{{/hasQueryParams}}
       {{#hasFormParams}}{{#formParams}} RequestParameter {{paramName}} = params.pathParameter("{{paramName}}");
       if ({{paramName}} != null){
-      
+
       }{{/formParams}}{{/hasFormParams}}
       {{#hasBodyParam}}{{#bodyParams}}RequestParameter {{{paramName}}} = params.body();{{/bodyParams}}{{/hasBodyParam}}
-      
+
       JsonObject operation = pRoutingContext.get("operationModel");
       pRoutingContext.response().setStatusCode(200).setStatusMessage("OK")
         .end(operation.getString("operationId"));
-      
-      {{/hasParams}}
-      {{/vendorExtensions.x-codegen-isget}}
+
+      {{/hasParams}}{{/vendorExtensions.x-codegen-isget}}
     }
 
     {{#isDeprecated}}@Deprecated{{/isDeprecated}}
     @Override
     public void handleFailed{{#lambda.titlecase}}{{operationId}}{{/lambda.titlecase}}(RoutingContext pRoutingContext){
       LOG.info("{{operationId}}({})", "{{httpMethod}}");
-      {{#vendorExtensions.x-codegen-isget}}{{#lambdaRemoveLineBreak}}{{#hasParams}}
+      {{#vendorExtensions.x-codegen-isget}}{{#hasParams}}
       RequestParameters params = pRoutingContext.get(ValidationHandler.REQUEST_CONTEXT_KEY);
       {{#hasCookiesParams}}{{#cookieParams}} RequestParameter p{{paramName}} = params.cookieParameter("{{paramName}}");
       if ({{paramName}} != null){
-        
+
       }{{/cookieParams}}{{/hasCookiesParams}}
       {{#hasHeaderParams}}{{#headerParams}} RequestParameter {{paramName}} = params.headerParameter("{{paramName}}");
       if ({{paramName}} != null){
-        
+
       }{{/headerParams}}{{/hasHeaderParams}}
       {{#hasQueryParams}}{{#queryParams}} RequestParameter {{paramName}} = params.queryParameter("{{paramName}}");
       if ({{paramName}} != null){
-        
+
       }{{/queryParams}}{{/hasQueryParams}}
       {{#hasFormParams}}{{#formParams}} RequestParameter {{paramName}} = params.pathParameter("{{paramName}}");
       if ({{paramName}} != null){
-      
+
       }{{/formParams}}{{/hasFormParams}}
       {{#hasBodyParam}}{{#bodyParams}}RequestParameter {{{paramName}}} = params.body();{{/bodyParams}}{{/hasBodyParam}}
-      {{/hasParams}}{{/lambdaRemoveLineBreak}}{{/vendorExtensions.x-codegen-isget}}
+      {{/hasParams}}{{/vendorExtensions.x-codegen-isget}}
     }
-    {{/operation}}
-    {{/operations}}
-    
+    {{/operation}}{{/operations}}
+
 
 }

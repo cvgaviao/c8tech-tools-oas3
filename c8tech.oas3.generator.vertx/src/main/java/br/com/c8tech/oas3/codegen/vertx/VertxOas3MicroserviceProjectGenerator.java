@@ -1,4 +1,4 @@
-/**
+/*
  * ============================================================================
  *  Copyright ©  2020,    Cristiano V. Gavião
  *
@@ -15,6 +15,9 @@ import static java.util.stream.Collectors.toMap;
 import static org.openapitools.codegen.utils.StringUtils.camelize;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -54,6 +57,8 @@ import org.slf4j.LoggerFactory;
 import com.samskivert.mustache.Mustache;
 
 import io.swagger.v3.core.util.Json;
+import io.swagger.v3.core.util.Yaml;
+import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.Schema;
@@ -63,11 +68,13 @@ import io.swagger.v3.parser.util.SchemaTypeUtil;
 public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
     implements CodegenConfig {
 
+  private static final String DATA_OBJECT           = "DataObject";
   private static final String DEFAULT_LINKS_CLASS   = "Links";
   private static final String DEFAULT_META_CLASS    = "Meta";
   private static final String DEFAULT_PROBLEM_CLASS = "ParentModelClass";
+  public static final String  GENERATOR_NAME        = "vertx-oas3-microservice";
 
-  public static final String  GENERATOR_NAME       = "vertx-oas3-microservice";
+  private static final String JSON_OBJECT          = "JsonObject";
   private static final Logger LOG                  =
       LoggerFactory.getLogger(VertxOas3MicroserviceProjectGenerator.class);
   private static final String PARENT_HANDLER_CLASS = "ParentHandlerClass";
@@ -107,7 +114,7 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
     dateLibrary = "java8";
 
     // set the output folder here
-    outputFolder = "generated-code" + File.separator + "java";
+    outputFolder = "generated-code" + File.separator + "oas3";
 
     setSortModelPropertiesByRequiredFlag(true);
 
@@ -126,22 +133,22 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
 
     importMapping.put("RoutingContext",
                       "io.vertx.ext.web.RoutingContext");
-    importMapping.put("JsonObject",
+    importMapping.put(JSON_OBJECT,
                       "io.vertx.core.json.JsonObject");
     importMapping.put("RequestParameters",
                       "io.vertx.ext.web.validation.RequestParameters");
-    importMapping.put("DataObject",
+    importMapping.put(DATA_OBJECT,
                       "io.vertx.codegen.annotations.DataObject");
     importMapping.put(PARENT_HANDLER_CLASS,
-                      "br.com.c8tech.mmarket.backend.common.handlers.AbstractWebApiHandler");
+                      "br.com.c8tech.java.vertx.http.handlers.AbstractWebApiOperationHandler");
     importMapping.put("AbstractModel",
-                      "br.com.c8tech.oas3.codegen.vertx.AbstractModel");
+                      "br.com.c8tech.java.vertx.models.AbstractModel");
     importMapping.put(DEFAULT_LINKS_CLASS,
-                      "br.com.c8tech.mmarket.backend.common.models.Links");
+                      "br.com.c8tech.java.vertx.http.models.Links");
     importMapping.put(DEFAULT_META_CLASS,
-                      "br.com.c8tech.mmarket.backend.common.models.Meta");
+                      "br.com.c8tech.java.vertx.http.models.Meta");
     importMapping.put(DEFAULT_PROBLEM_CLASS,
-                      "br.com.c8tech.mmarket.backend.common.models.BaseErrorSchema");
+                      "br.com.c8tech.java.vertx.http.models.BaseErrorSchema");
     typeMapping.put(PARENT_MODEL_CLASS,
                     "AbstractModel");
     typeMapping.put("BaseErrorSchemaRFC7807",
@@ -157,6 +164,13 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
     hideGenerationTimestamp = false;
     enablePostProcessFile = true;
 
+  }
+
+  @Override
+  protected void addImport(CodegenModel m, String type) {
+    if (type != null && !allDefinitions.containsKey(type) && needToImport(type)) {
+      m.imports.add(type);
+    }
   }
 
   @Override
@@ -343,10 +357,6 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
   @Override
   public CodegenModel fromModel(String pName, Schema pSchema) { //NOSONAR
 
-    if (models.containsKey(pName)) {
-      return models.get(pName);
-    }
-
     if (allDefinitions == null) {
       allDefinitions = ModelUtils.getSchemas(this.openAPI);
     }
@@ -355,6 +365,8 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
       // Only do this once during first call
       typeAliases = getAllSchemaAliases(allDefinitions);
     }
+
+    CodegenModel codegenModel;
 
     // unalias schema
     Schema schema = ModelUtils.unaliasSchema(this.openAPI,
@@ -365,10 +377,10 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
                 pName);
       return null;
     }
-    CodegenModel codegenModel;
     LOG.info("Processing model '{}'",
              pName);
     codegenModel = CodegenModelFactory.newInstance(CodegenModelType.MODEL);
+
     if (reservedWords.contains(pName)) {
       codegenModel.name = escapeReservedWord(pName);
     } else {
@@ -378,6 +390,12 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
     codegenModel.description = escapeText(schema.getDescription());
     codegenModel.unescapedDescription = schema.getDescription();
     codegenModel.classname = toModelName(pName);
+
+    if (codegenModel.classname.contains("Abstract")) {
+      codegenModel.vendorExtensions.put("x-codegen-isAbstract",
+                                        true);
+    }
+
     codegenModel.classVarName = toVarName(pName);
     codegenModel.classFilename = toModelFilename(pName);
     codegenModel.modelJson = Json.pretty(schema);
@@ -449,8 +467,6 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
 
     models.put(codegenModel.name,
                codegenModel);
-    addImport(codegenModel,
-              "DataObject");
 
     if (schema instanceof ComposedSchema) {
 
@@ -473,7 +489,6 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
     } else {
       processSimpleTypeSchemaModel(schema,
                                    codegenModel);
-      setPojoImports(codegenModel);
     }
 
     // post process model properties
@@ -520,7 +535,7 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
     codegenOperation.vendorExtensions.put("x-codegen-parent-import",
                                           newImport);
 
-    codegenOperation.imports.add("JsonObject");
+    codegenOperation.imports.add(JSON_OBJECT);
     codegenOperation.imports.add("RoutingContext");
     codegenOperation.imports.add("RequestParameters");
 
@@ -578,23 +593,13 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
     return GENERATOR_NAME;
   }
 
-  //  protected String extractPortFromHost(String host) {
-  //    if (host != null) {
-  //      int portSeparatorIndex = host.indexOf(':');
-  //      if (portSeparatorIndex >= 0 && portSeparatorIndex + 1 < host.length()) {
-  //        return host.substring(portSeparatorIndex + 1);
-  //      }
-  //    }
-  //    return "8080";
-  //  }
-
   /**
    * Return the OAI type (e.g. integer, long, etc) corresponding to a schema.
-   * 
+   *
    * <pre>
    * $ref
    * </pre>
-   * 
+   *
    * is not taken into account by this method.
    * <p>
    * If the schema is free-form (i.e. 'type: object' with no properties) or
@@ -748,29 +753,34 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
       Schema parentSchema = null;
       if (schema.get$ref() != null && !schema.get$ref().isBlank()) {
         String modelName = ModelUtils.getSimpleRef(schema.get$ref());
-        parentSchema = allDefinitions.get(modelName);
-        parentCodegenModel = fromModel(modelName,
-                                       parentSchema);
+
+        if (models.containsKey(modelName)) {
+          parentCodegenModel = models.get(modelName);
+        } else {
+
+          parentSchema = allDefinitions.get(modelName);
+          parentCodegenModel = fromModel(modelName,
+                                         parentSchema);
+        }
       } else {
-        parentCodegenModel = fromModel(schema.getName(),
-                                       schema);
+        if (models.containsKey(schema.getName())) {
+          parentCodegenModel = models.get(schema.getName());
+        } else {
+          parentCodegenModel = fromModel(schema.getName(),
+                                         schema);
+        }
       }
-      if (parentSchema == null || parentCodegenModel == null) {
+      if (parentCodegenModel == null) {
         return;
       }
-      models.put(parentCodegenModel.getName(),
-                 parentCodegenModel);
 
       pCodegenModel.setParent(parentCodegenModel.getName());
       pCodegenModel.setParentModel(parentCodegenModel);
-
-      // add import
       addImport(pCodegenModel,
                 parentCodegenModel.getName());
+
       setPojoImports(pCodegenModel);
-
     }
-
   }
 
   private void processAnyOfComposedSchemaModel(ComposedSchema pComposedSchema,
@@ -781,6 +791,9 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
   @SuppressWarnings("rawtypes")
   private void processOneOfComposedSchemaModel(ComposedSchema pComposedSchema,
     CodegenModel pCodegenModel) {
+
+    pCodegenModel.vendorExtensions.put("x-codegen-isInterface",
+                                       true);
 
     // if schema has properties outside of oneOf also add them to pCodegenModel
     if (pComposedSchema.getProperties() != null
@@ -797,20 +810,28 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
               null);
     }
 
+    setPojoImports(pCodegenModel);
+
     List<Schema> subschemas = pComposedSchema.getOneOf();
     for (Schema schema : subschemas) {
       CodegenModel child;
       if (schema.get$ref() != null && !schema.get$ref().isBlank()) {
         String modelName = ModelUtils.getSimpleRef(schema.get$ref());
         Schema childSchema = allDefinitions.get(modelName);
-        child = fromModel(modelName,
-                          childSchema);
+        if (models.containsKey(modelName)) {
+          child = models.get(modelName);
+        } else {
+          child = fromModel(modelName,
+                            childSchema);
+        }
       } else {
-        child = fromModel(schema.getName(),
-                          schema);
+        if (models.containsKey(schema.getName())) {
+          child = models.get(schema.getName());
+        } else {
+          child = fromModel(schema.getName(),
+                            schema);
+        }
       }
-      models.put(child.getName(),
-                 child);
       pCodegenModel.oneOf.add(child.getName());
 
       // add the corresponding interface
@@ -820,7 +841,26 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
       addImport(child,
                 pCodegenModel.getName());
     }
+  }
 
+  @Override
+  public void processOpenAPI(OpenAPI openAPI) {
+    String outputFilename = "openapi.yaml";
+    try {
+      Path outputDir = Path.of(outputFolder).resolve("src/main/resources");
+      Files.createDirectories(outputDir);
+      Path outputFile = outputDir.resolve(outputFilename);
+      String openapiYaml = Yaml.pretty(openAPI);
+      Files.write(outputFile.resolve(outputFile),
+                  openapiYaml.getBytes(StandardCharsets.UTF_8));
+
+      LOG.info("Wrote openapi.yaml file to {}",
+               outputDir);
+    }
+    catch (Exception e) {
+      LOG.error(e.getMessage(),
+                e);
+    }
   }
 
   @Override
@@ -843,9 +883,6 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
     supportingFiles.add(new SupportingFile("openapi-generator-ignore.mustache",
       "",
       ".openapi-generator-ignore").doNotOverwrite());
-    supportingFiles.add(new SupportingFile("openapi.mustache",
-      resourceFolder,
-      "openapi.yaml"));
     supportingFiles.add(new SupportingFile("package-info.mustache",
       this.getSourceFolder() + File.separator + modelPackage().replace(".",
                                                                        File.separator),
@@ -932,20 +969,27 @@ public class VertxOas3MicroserviceProjectGenerator extends AbstractJavaCodegen
             pSchema.getRequired(),
             null,
             null);
+
+    setPojoImports(pCodegenModel);
+
   }
 
   private void setPojoImports(CodegenModel pCodegenModel) {
-    addImport(pCodegenModel,
-              "Objects");
-    addImport(pCodegenModel,
-              "JsonObject");
-    String converter = pCodegenModel.classname + "Converter";
 
-    importMapping.put(converter,
-                      modelPackage + "." + converter);
-    pCodegenModel.imports.add("DataObject");
-    pCodegenModel.imports.add(converter);
-
+    if (pCodegenModel.vendorExtensions.containsKey("x-codegen-isInterface")) {
+      pCodegenModel.imports.remove("Objects");
+      pCodegenModel.imports.remove(DATA_OBJECT);
+      pCodegenModel.imports.remove(JSON_OBJECT);
+    } else {
+      if (pCodegenModel.hasVars) {
+        addImport(pCodegenModel,
+                  "Objects");
+      }
+      addImport(pCodegenModel,
+                JSON_OBJECT);
+      addImport(pCodegenModel,
+                DATA_OBJECT);
+    }
   }
 
   //  @Override
